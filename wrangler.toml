@@ -1,0 +1,8 @@
+name = "moony-forms"
+account_id = "d4c5ac895cc2aa2be4082b6414f2c928"
+compatibility_flags = [ "nodejs_compat" ]
+compatibility_date = "2023-10-25"
+
+r2_buckets  = [
+  { binding = "MOONY", bucket_name = "moony"}
+]
