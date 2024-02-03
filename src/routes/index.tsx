@@ -1,8 +1,9 @@
-import { component$, useSignal } from "@builder.io/qwik";
-import { Form, routeAction$, type DocumentHead } from "@builder.io/qwik-city";
+import { component$, useContext, useSignal, useVisibleTask$ } from "@builder.io/qwik";
+import { Form, routeAction$, type DocumentHead, useNavigate } from "@builder.io/qwik-city";
 import { type R2Bucket } from "@cloudflare/workers-types";
 import { TextInput, SelectInput } from "~/components/inputs/FormInputs";
 import VestibuloImg from "~/media/building.jpeg";
+import { CTX, useCheckSession } from "./layout";
 
 export const usePostUser = routeAction$(async (data, { platform }) => {
   try {
@@ -15,7 +16,6 @@ export const usePostUser = routeAction$(async (data, { platform }) => {
       ((await (await MOONY.get("users"))?.json()) as any[] | undefined) || [];
     await MOONY.put("users", JSON.stringify([...users, {...data, id, created_at: new Date().toISOString()}]));
   } catch {
-    console.log(data);
     console.log("local storage not available");
   }
 });
@@ -23,16 +23,21 @@ export const usePostUser = routeAction$(async (data, { platform }) => {
 export default component$(() => {
   const action = usePostUser();
   const isChecked = useSignal(false);
-  /*
-  Nombre: 
-  Dirección: 
-  Nombre Residente: (puede ser 1 o hay gente que llevan al papa y la mama)
-  Edad de residente/s:
-  Condición de salud si tiene 
-  Si  es dependiente, independiente o co-dependiente. 
-  Plan medico 
-  Si desea habitación privada o semi-privada.
-  */
+  const ctx = useContext(CTX);
+  const checkSession = useCheckSession();
+  const nav = useNavigate();
+  useVisibleTask$(() => {
+    console.log(location.pathname);
+    checkSession.submit({ session: localStorage.getItem("session") }).then(res => {
+      console.log('login status', res.value.success)
+      if (!res.value.success) {
+        nav('/auth');
+        ctx.loggedIn.value = false;
+      } else {
+        ctx.loggedIn.value = true;
+      }
+    });
+  })
   return (
     <div class="relative">
       <img
